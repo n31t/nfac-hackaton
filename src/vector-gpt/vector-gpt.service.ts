@@ -7,10 +7,10 @@ const LangchainOpenAI = require("@langchain/openai").OpenAI;
 let { loadQAStuffChain } = require("langchain/chains");
 let { Document } = require("langchain/document");
 const embeddings = new GoogleGenerativeAIEmbeddings({
-    model: "embedding-001", // 768 dimensions
+  model: "embedding-001", // 768 dimensions
 });
 
-const indexName = 'nfac-hackaton';
+const indexName = "nfac-hackaton";
 const index = pinecone.index(indexName);
 
 class VectorGPTService {
@@ -30,7 +30,7 @@ class VectorGPTService {
         }
     }
 
-    async createTotalMarks(userJSONdata: UserData, neededSkills : string) : Promise<any> { 
+    async createTotalMarks(userJSONdata: userData, neededSkills : string) : Promise<any> { 
         let points = 50;
         if(userJSONdata.availabilityInAlmaty === false || 
             userJSONdata.gitHubHandle === '' || 
@@ -95,54 +95,62 @@ class VectorGPTService {
                           "totalScore": 17,
                           "opinionAboutParticipant": "Под вопросом"
                         }
-                        `
-                    },
-                    {
-                        role: 'user',
-                        content: `
+                        `,
+          },
+          {
+            role: "user",
+            content: `
                         Данные кандидата: {
                             ${JSON.stringify(prompt)}
                         }
-                        `
-                    }
-                ],
-                stream: false
-            });
-            
-            let messageContent = response.choices[0]?.message?.content || null;
-            console.log('Received message content:', messageContent);
-            
-            if (!messageContent) {
-                throw new Error('No content received from OpenAI');
-            }
+                        `,
+          },
+        ],
+        stream: false,
+      });
 
-            // Extracting JSON response from OpenAI
-            const jsonMessage = JSON.parse(messageContent.replace(/```json|```/g, '').trim());
-            console.log('GPT response:', jsonMessage);
+      let messageContent = response.choices[0]?.message?.content || null;
+      console.log("Received message content:", messageContent);
 
-            const totalScore = Number(jsonMessage?.totalScore); 
-            if (isNaN(totalScore)) {
-                throw new Error(`Invalid totalScore received from OpenAI: ${jsonMessage?.totalScore}`);
-            }
-            const opinionAboutParticipant = jsonMessage?.opinionAboutParticipant;
+      if (!messageContent) {
+        throw new Error("No content received from OpenAI");
+      }
 
-            // Adjusting points based on OpenAI evaluation
-            points += totalScore;
+      // Extracting JSON response from OpenAI
+      const jsonMessage = JSON.parse(
+        messageContent.replace(/```json|```/g, "").trim()
+      );
+      console.log("GPT response:", jsonMessage);
 
-            const yesOrNo = await this.mapPointsToCategory(points);
+      const totalScore = Number(jsonMessage?.totalScore);
+      if (isNaN(totalScore)) {
+        throw new Error(
+          `Invalid totalScore received from OpenAI: ${jsonMessage?.totalScore}`
+        );
+      }
+      const opinionAboutParticipant = jsonMessage?.opinionAboutParticipant;
 
-            return { yesOrNo, points, opinionAboutParticipant };
-            } catch (error) {
-                throw new Error(`Error processing with OpenAI: ${(error as Error).message}`);
-            }
-            
+      // Adjusting points based on OpenAI evaluation
+      points += totalScore;
+
+      const yesOrNo = await this.mapPointsToCategory(points);
+
+      return { yesOrNo, points, opinionAboutParticipant };
+    } catch (error) {
+      throw new Error(
+        `Error processing with OpenAI: ${(error as Error).message}`
+      );
     }
+<<<<<<< HEAD
+  }
+=======
 
     async saveToVectorDB(userJSONdata: CandidateData, mentorsComment: string) {
         
     }
 
 
+>>>>>>> c376daf1d8c674e1d17c3ed5ea7f56c7e8bab320
 }
 
 export default VectorGPTService;
