@@ -29,8 +29,8 @@ class VectorGPTService {
             return 'Invalid points';
         }
     }
-    
-    async createTotalMarks(userJSONdata: userData, neededSkills : string) : Promise<any> {
+
+    async createTotalMarks(userJSONdata: userData, neededSkills : string) : Promise<any> { 
         let points = 50;
         if(userJSONdata.availabilityInAlmaty === false || 
             userJSONdata.gitHubHandle === '' || 
@@ -71,7 +71,7 @@ class VectorGPTService {
                         4. Достижения (любые, проверка на личность). От -10 до 5 баллов.
                         5. Место работы (если IT работа +10 баллов)
                         
-                        На основе приведённых данных кандидата и нужных навыков, оцените его и верните JSON с баллами по каждому критерию и общим результатом.
+                        На основе приведённых данных кандидата и нужных навыков, оцените его и верните JSON с баллами по каждому критерию и общим результатом. Также добавьте своё мнение о кандидате, опираясь на информацию, а не на баллы.
                         
                         Пример данных кандидата: {
                             "programmingSkillLevel": "Имею хорошие базовые навыки на уровне студента ИТ-университета",
@@ -91,6 +91,7 @@ class VectorGPTService {
                           "achievements": 10,
                           "jobPlacement": 6,
                           "totalScore": 17,
+                          "opinionAboutParticipant": "Под вопросом"
                         }
                         `
                     },
@@ -121,17 +122,21 @@ class VectorGPTService {
             if (isNaN(totalScore)) {
                 throw new Error(`Invalid totalScore received from OpenAI: ${jsonMessage?.totalScore}`);
             }
+            const opinionAboutParticipant = jsonMessage?.opinionAboutParticipant;
 
             // Adjusting points based on OpenAI evaluation
             points += totalScore;
 
+            const yesOrNo = await this.mapPointsToCategory(points);
 
-            return points;
+            return { yesOrNo, points, opinionAboutParticipant };
             } catch (error) {
                 throw new Error(`Error processing with OpenAI: ${(error as Error).message}`);
             }
             
     }
+
+    
 }
 
 export default VectorGPTService;
