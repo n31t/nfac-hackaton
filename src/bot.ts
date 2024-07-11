@@ -16,8 +16,8 @@ const fetchExcelFile = async (url: string) => {
     const workbook = XLSX.read(response.data, { type: "buffer" });
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
-    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-    return jsonData;
+    const jsonData: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+    return { workbook, jsonData, sheetName };
   } catch (error: any) {
     console.error("Error fetching the Excel file:", error.message);
     throw new Error("Failed to fetch the Excel file");
@@ -37,45 +37,48 @@ bot.on("text", async (ctx) => {
   } else {
     const url = ctx.message.text;
     try {
-      const data = await fetchExcelFile(url);
+      const { workbook, jsonData, sheetName } = await fetchExcelFile(url);
 
-      if (data.length < 2) {
+      if (jsonData.length < 2) {
         ctx.reply("The provided Excel file does not contain enough data.");
         return;
       }
 
-      const headers: any = data[1];
-      const rows = data.slice(2);
+      const headers: any = jsonData[0];
+      const rows = jsonData.slice(1);
 
       arrayUsers = rows.map((row: any): UserData => {
         return {
-          fullName: row[1] || "",
-          email: row[2] || "",
-          birthDate: row[3] || "",
-          phoneNumber: row[4] || "",
-          programmingSkillLevel: row[5] || "",
-          cv: row[6] || "",
-          willingToParticipateOnPaidBasis: row[7] === "да",
-          telegramHandle: row[8] || "",
-          linkedInLink: row[9] || "",
-          socialMediaLinks: row[10] ? row[10].split(",") : [],
-          gitHubHandle: row[11] || "",
-          educationalPlacement: row[12] || "",
-          specialtyAtUniversity: row[13] || "",
-          jobPlacement: row[14] || "",
-          programmingExperienceDescription: row[15] || "",
-          pastProgrammingProjects: row[16] || "",
-          bestAchievements: row[17] || "",
-          availabilityInAlmaty: row[18] === "ИСТИНА",
-          needAccommodationInAlmaty: row[19] === "да", // WE DON'T CARE
+          fullName: row[0] || "",
+          email: row[1] || "",
+          birthDate: row[2] || "",
+          phoneNumber: row[3] || "",
+          programmingSkillLevel: row[4] || "",
+          cv: row[5] || "",
+          willingToParticipateOnPaidBasis: row[6] === "да",
+          telegramHandle: row[7] || "",
+          linkedInLink: row[8] || "",
+          socialMediaLinks: row[9] ? row[9].split(",") : [],
+          gitHubHandle: row[10] || "",
+          educationalPlacement: row[11] || "",
+          specialtyAtUniversity: row[12] || "",
+          jobPlacement: row[13] || "",
+          programmingExperienceDescription: row[14] || "",
+          pastProgrammingProjects: row[15] || "",
+          bestAchievements: row[16] || "",
+          availabilityInAlmaty: row[17] === "ИСТИНА",
+          needAccommodationInAlmaty: row[18] === "да",
         };
       });
 
       const limitedUsers = arrayUsers.slice(0, 5);
-      console.log(limitedUsers);
       const vectorGPTService = new VectorGPTService();
 
-      for (const user of limitedUsers) {
+      // Ensure the new column header is added
+      headers.push("reviewed by AI");
+
+      for (let i = 0; i < limitedUsers.length; i++) {
+        const user = limitedUsers[i];
         const result = await vectorGPTService.createTotalMarks(
           user,
           neededSkills
@@ -88,11 +91,20 @@ bot.on("text", async (ctx) => {
           result.points,
           result.opinionAboutParticipant
         );
+        // Add the "reviewed by AI" column value to the row
+        jsonData[i + 1].push(result.points);
       }
 
+      const newSheet = XLSX.utils.json_to_sheet(jsonData, { header: headers });
+      workbook.Sheets[sheetName] = newSheet;
+      const filePath = "./updated_file.xlsx";
+      XLSX.writeFile(workbook, filePath);
+
       ctx.reply(
-        "The data of the first 3 users has been processed and evaluated."
+        "The data of the first 5 users has been processed and evaluated. Here is the updated file."
       );
+
+      await ctx.replyWithDocument({ source: filePath });
     } catch (error: any) {
       console.error("Error processing the Excel file:", error.message);
       ctx.reply(
