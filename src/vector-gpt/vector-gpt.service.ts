@@ -38,7 +38,9 @@ class VectorGPTService {
         userJSONdata.programmingExperienceDescription === '' || 
         userJSONdata.pastProgrammingProjects === ''){
             points = 0;
-            return points;
+            let yesOrNo = "hell-no"
+            let opinionAboutParticipant = "Нет важных полей для проверки"
+            return { yesOrNo, points, opinionAboutParticipant };
         }
     
         const urlRegex = /^(http|https):\/\/[^ "]+$/;
@@ -136,7 +138,9 @@ class VectorGPTService {
             
     }
 
-    
+    // async saveToVectorDB()
+
+
 }
 
 export default VectorGPTService;
