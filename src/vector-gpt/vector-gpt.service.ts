@@ -7,63 +7,77 @@ const LangchainOpenAI = require("@langchain/openai").OpenAI;
 let { loadQAStuffChain } = require("langchain/chains");
 let { Document } = require("langchain/document");
 const embeddings = new GoogleGenerativeAIEmbeddings({
-    model: "embedding-001", // 768 dimensions
+  model: "embedding-001", // 768 dimensions
 });
 
-const indexName = 'nfac-hackaton';
+const indexName = "nfac-hackaton";
 const index = pinecone.index(indexName);
 
 class VectorGPTService {
-    async mapPointsToCategory(points: number): Promise<string> {
-        if (points < 20) {
-            return 'hell-no';
-        } else if (points >= 20 && points < 40) {
-            return 'no';
-        } else if (points >= 40 && points < 60) {
-            return 'idk';
-        } else if (points >= 60 && points < 80) {
-            return 'yes';
-        } else if (points >= 80) {
-            return 'hell-yes';
-        } else {
-            return 'Invalid points';
-        }
+  async mapPointsToCategory(points: number): Promise<string> {
+    if (points < 20) {
+      return "hell-no";
+    } else if (points >= 20 && points < 40) {
+      return "no";
+    } else if (points >= 40 && points < 60) {
+      return "idk";
+    } else if (points >= 60 && points < 80) {
+      return "yes";
+    } else if (points >= 80) {
+      return "hell-yes";
+    } else {
+      return "Invalid points";
+    }
+  }
+
+  async createTotalMarks(
+    userJSONdata: userData,
+    neededSkills: string
+  ): Promise<any> {
+    let points = 50;
+    if (
+      userJSONdata.availabilityInAlmaty === false ||
+      userJSONdata.gitHubHandle === "" ||
+      (userJSONdata.phoneNumber.length === 0 && userJSONdata.email === "") ||
+      userJSONdata.programmingExperienceDescription === "" ||
+      userJSONdata.pastProgrammingProjects === ""
+    ) {
+      points = 0;
+      return points;
     }
 
-    async createTotalMarks(userJSONdata: userData, neededSkills : string) : Promise<any> { 
-        let points = 50;
-        if(userJSONdata.availabilityInAlmaty === false || 
-            userJSONdata.gitHubHandle === '' || 
-        (userJSONdata.phoneNumber.length === 0 && userJSONdata.email === '') || 
-        userJSONdata.programmingExperienceDescription === '' || 
-        userJSONdata.pastProgrammingProjects === ''){
-            points = 0;
-            return points;
-        }
-    
-        const urlRegex = /^(http|https):\/\/[^ "]+$/;
-        if(urlRegex.test(userJSONdata.linkedInLink)) {
-            points += 2;
-        }
-        if(userJSONdata.cv){
-            points += 5;
-        }
-        
-        // TODO: Check if user has projects in Github
-    
-    
-        const { fullName, email, birthDate, phoneNumber, willingToParticipateOnPaidBasis, 
-            telegramHandle, socialMediaLinks, 
-            // educationalPlacement, specialtyAtUniversity, jobPlacement, QUITE USELESS BUT MAYBE
-            availabilityInAlmaty, needAccommodationInAlmaty, gitHubHandle,  ...prompt } = userJSONdata;
-            console.log('Prompt:', prompt);
-            try {
-            const response = await openai.chat.completions.create({
-                model: 'gpt-4o',
-                messages: [
-                    {
-                        role: 'system',
-                        content: `
+    const urlRegex = /^(http|https):\/\/[^ "]+$/;
+    if (urlRegex.test(userJSONdata.linkedInLink)) {
+      points += 2;
+    }
+    if (userJSONdata.cv) {
+      points += 5;
+    }
+
+    // TODO: Check if user has projects in Github
+
+    const {
+      fullName,
+      email,
+      birthDate,
+      phoneNumber,
+      willingToParticipateOnPaidBasis,
+      telegramHandle,
+      socialMediaLinks,
+      // educationalPlacement, specialtyAtUniversity, jobPlacement, QUITE USELESS BUT MAYBE
+      availabilityInAlmaty,
+      needAccommodationInAlmaty,
+      gitHubHandle,
+      ...prompt
+    } = userJSONdata;
+    console.log("Prompt:", prompt);
+    try {
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: `
                         Вы — автоматический проверяющий для летнего инкубатора nfactorial по программированию. Ваша задача — оценить кандидата по нескольким критериям и решить подходит ли он для дальнейшего прохождения. Вы смотрите критерии и ставите балл за этот критерий, относительно того, как он подходит. Учтите также, что большая часть полученных данных может получать больше и меньше баллов относительно запроса Ментора: "${neededSkills}".Ответ должен быть строго в формате JSON объекта и не должен включать никакого дополнительного текста. Критерии и максимальные баллы за них следующие:
                         
                         2. Опыт программирования относительно менторского запроса. От -30 до 20 баллов.
@@ -93,50 +107,53 @@ class VectorGPTService {
                           "totalScore": 17,
                           "opinionAboutParticipant": "Под вопросом"
                         }
-                        `
-                    },
-                    {
-                        role: 'user',
-                        content: `
+                        `,
+          },
+          {
+            role: "user",
+            content: `
                         Данные кандидата: {
                             ${JSON.stringify(prompt)}
                         }
-                        `
-                    }
-                ],
-                stream: false
-            });
-            
-            let messageContent = response.choices[0]?.message?.content || null;
-            console.log('Received message content:', messageContent);
-            
-            if (!messageContent) {
-                throw new Error('No content received from OpenAI');
-            }
+                        `,
+          },
+        ],
+        stream: false,
+      });
 
-            // Extracting JSON response from OpenAI
-            const jsonMessage = JSON.parse(messageContent.replace(/```json|```/g, '').trim());
-            console.log('GPT response:', jsonMessage);
+      let messageContent = response.choices[0]?.message?.content || null;
+      console.log("Received message content:", messageContent);
 
-            const totalScore = Number(jsonMessage?.totalScore); 
-            if (isNaN(totalScore)) {
-                throw new Error(`Invalid totalScore received from OpenAI: ${jsonMessage?.totalScore}`);
-            }
-            const opinionAboutParticipant = jsonMessage?.opinionAboutParticipant;
+      if (!messageContent) {
+        throw new Error("No content received from OpenAI");
+      }
 
-            // Adjusting points based on OpenAI evaluation
-            points += totalScore;
+      // Extracting JSON response from OpenAI
+      const jsonMessage = JSON.parse(
+        messageContent.replace(/```json|```/g, "").trim()
+      );
+      console.log("GPT response:", jsonMessage);
 
-            const yesOrNo = await this.mapPointsToCategory(points);
+      const totalScore = Number(jsonMessage?.totalScore);
+      if (isNaN(totalScore)) {
+        throw new Error(
+          `Invalid totalScore received from OpenAI: ${jsonMessage?.totalScore}`
+        );
+      }
+      const opinionAboutParticipant = jsonMessage?.opinionAboutParticipant;
 
-            return { yesOrNo, points, opinionAboutParticipant };
-            } catch (error) {
-                throw new Error(`Error processing with OpenAI: ${(error as Error).message}`);
-            }
-            
+      // Adjusting points based on OpenAI evaluation
+      points += totalScore;
+
+      const yesOrNo = await this.mapPointsToCategory(points);
+
+      return { yesOrNo, points, opinionAboutParticipant };
+    } catch (error) {
+      throw new Error(
+        `Error processing with OpenAI: ${(error as Error).message}`
+      );
     }
-
-    
+  }
 }
 
 export default VectorGPTService;

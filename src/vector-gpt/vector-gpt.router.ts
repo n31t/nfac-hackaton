@@ -6,7 +6,9 @@ const vectorGPTRouter = Router();
 const vectorGPTService = new VectorGPTService();
 const vectorGPTController = new VectorGPTController(vectorGPTService);
 
-
-vectorGPTRouter.post('/create-total-marks', vectorGPTController.createTotalMarks);
+vectorGPTRouter.post(
+  "/create-total-marks",
+  vectorGPTController.createTotalMarks
+);
 
 export default vectorGPTRouter;
