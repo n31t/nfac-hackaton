@@ -46,6 +46,7 @@ class VectorGPTService {
       return points;
     }
 
+<<<<<<< HEAD
     const urlRegex = /^(http|https):\/\/[^ "]+$/;
     if (urlRegex.test(userJSONdata.linkedInLink)) {
       points += 2;
@@ -78,6 +79,44 @@ class VectorGPTService {
           {
             role: "system",
             content: `
+=======
+    async createTotalMarks(userJSONdata: userData, neededSkills : string) : Promise<any> { 
+        let points = 50;
+        if(userJSONdata.availabilityInAlmaty === false || 
+            userJSONdata.gitHubHandle === '' || 
+        (userJSONdata.phoneNumber.length === 0 && userJSONdata.email === '') || 
+        userJSONdata.programmingExperienceDescription === '' || 
+        userJSONdata.pastProgrammingProjects === ''){
+            points = 0;
+            let yesOrNo = "hell-no"
+            let opinionAboutParticipant = "Нет важных полей для проверки"
+            return { yesOrNo, points, opinionAboutParticipant };
+        }
+    
+        const urlRegex = /^(http|https):\/\/[^ "]+$/;
+        if(urlRegex.test(userJSONdata.linkedInLink)) {
+            points += 2;
+        }
+        if(userJSONdata.cv){
+            points += 5;
+        }
+        
+        // TODO: Check if user has projects in Github
+    
+    
+        const { fullName, email, birthDate, phoneNumber, willingToParticipateOnPaidBasis, 
+            telegramHandle, socialMediaLinks, 
+            // educationalPlacement, specialtyAtUniversity, jobPlacement, QUITE USELESS BUT MAYBE
+            availabilityInAlmaty, needAccommodationInAlmaty, gitHubHandle,  ...prompt } = userJSONdata;
+            console.log('Prompt:', prompt);
+            try {
+            const response = await openai.chat.completions.create({
+                model: 'gpt-4o',
+                messages: [
+                    {
+                        role: 'system',
+                        content: `
+>>>>>>> c376daf1d8c674e1d17c3ed5ea7f56c7e8bab320
                         Вы — автоматический проверяющий для летнего инкубатора nfactorial по программированию. Ваша задача — оценить кандидата по нескольким критериям и решить подходит ли он для дальнейшего прохождения. Вы смотрите критерии и ставите балл за этот критерий, относительно того, как он подходит. Учтите также, что большая часть полученных данных может получать больше и меньше баллов относительно запроса Ментора: "${neededSkills}".Ответ должен быть строго в формате JSON объекта и не должен включать никакого дополнительного текста. Критерии и максимальные баллы за них следующие:
                         
                         2. Опыт программирования относительно менторского запроса. От -30 до 20 баллов.
@@ -153,7 +192,14 @@ class VectorGPTService {
         `Error processing with OpenAI: ${(error as Error).message}`
       );
     }
+<<<<<<< HEAD
   }
+=======
+
+    // async saveToVectorDB()
+
+
+>>>>>>> c376daf1d8c674e1d17c3ed5ea7f56c7e8bab320
 }
 
 export default VectorGPTService;
