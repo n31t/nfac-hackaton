@@ -138,7 +138,9 @@ class VectorGPTService {
             
     }
 
-    // async saveToVectorDB()
+    async saveToVectorDB(userJSONdata: userData, mentorsComment: string) {
+        
+    }
 
 
 }
