@@ -14,6 +14,17 @@ const indexName = "nfac-hackaton";
 const index = pinecone.index(indexName);
 
 class VectorGPTService {
+  /**
+ * Maps a numerical score to a category.
+ *
+ * @param points - A number representing the score to be mapped.
+ * @returns A promise that resolves to a string representing the category corresponding to the score.
+ *
+ * This function takes a numerical score as a parameter and maps it to a category.
+ * The mapping from scores to categories is determined by a pre-defined set of rules.
+ * For example, scores from 0 to 50 might be mapped to the category 'Low', scores from 51 to 80 to 'Medium', and scores from 81 to 100 to 'High'.
+ * The function returns a promise that resolves to the category string.
+ */
     async mapPointsToCategory(points: number): Promise<string> {
         if (points < 20) {
             return 'hell-no';
@@ -30,6 +41,19 @@ class VectorGPTService {
         }
     }
 
+    /**
+ * Calculates the total marks for a user based on their skills and the needed skills.
+ *
+ * @param userJSONdata - An object of type UserData, containing information about the user and their skills.
+ * @param neededSkills - A string representing the skills that are needed.
+ * @returns A promise that resolves to a number representing the total marks of the user.
+ *
+ * This function takes a user object and a string of needed skills as parameters.
+ * It calculates the total marks for the user based on how many of the needed skills they have.
+ * The function assumes that the user's skills are stored in the `skills` property of the user object,
+ * and that the needed skills are provided as a comma-separated string.
+ * The function returns a promise that resolves to the total marks, which is a number.
+ */
     async createTotalMarks(userJSONdata: UserData, neededSkills : string) : Promise<any> { 
         let points = 50;
         if(userJSONdata.availabilityInAlmaty === false || 
@@ -176,6 +200,18 @@ class VectorGPTService {
     }
   }
 
+  /**
+ * Saves a user's message to a vector database.
+ *
+ * @param user - An object of type UserData, containing information about the user.
+ * @param message - A string representing the message to be saved.
+ * @returns A promise that resolves when the message has been successfully saved to the database.
+ *
+ * This function takes a user object and a message string as parameters.
+ * It transforms the message into a vector representation using a pre-trained model.
+ * The vector representation of the message, along with the user's information, is then saved to a vector database.
+ * This allows for efficient similarity searches in the database.
+ */
   async saveToVectorDB(user: UserData, message: string) {
     // Create a text string from the user's data and the message
     const text = `${user} ${message}`;
