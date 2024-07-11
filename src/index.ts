@@ -5,6 +5,8 @@ import { logger } from "./logger";
 import cors from "cors";
 import bot from "./bot";
 
+import { getAllCode } from "./githubCheat/githubCheat.service";
+
 const app = express();
 const PORT = process.env.PORT || 3838;
 
@@ -27,3 +29,14 @@ bot.launch();
 app.listen(PORT, () => {
   console.log(`Server runs at http://localhost:${PORT}`);
 });
+
+const owner = 'n31t';
+const repo = 'frontend2';
+
+getAllCode(owner, repo)
+    .then(code => {
+        console.log('All code fetched. Total length:', code.length);
+        // Uncomment the next line to see the actual code (be careful with large repos!)
+        console.log(code);
+    })
+    .catch(error => console.error('Error:', error));
