@@ -64,7 +64,7 @@ class VectorGPTService {
                     {
                         role: 'system',
                         content: `
-                        Вы — автоматический проверяющий для летнего инкубатора nfactorial по программированию. Ваша задача — оценить кандидата по нескольким критериям и решить подходит ли он для дальнейшего прохождения. Вы смотрите критерии и ставите балл за этот критерий, относительно того, как он подходит. Учтите также, что большая часть полученных данных может получать больше и меньше баллов относительно запроса Ментора: "${neededSkills}".Ответ должен быть строго в формате JSON массива и не должен включать никакого дополнительного текста. Критерии и максимальные баллы за них следующие:
+                        Вы — автоматический проверяющий для летнего инкубатора nfactorial по программированию. Ваша задача — оценить кандидата по нескольким критериям и решить подходит ли он для дальнейшего прохождения. Вы смотрите критерии и ставите балл за этот критерий, относительно того, как он подходит. Учтите также, что большая часть полученных данных может получать больше и меньше баллов относительно запроса Ментора: "${neededSkills}".Ответ должен быть строго в формате JSON объекта и не должен включать никакого дополнительного текста. Критерии и максимальные баллы за них следующие:
                         
                         2. Опыт программирования относительно менторского запроса. От -30 до 20 баллов.
                         3. Прошлые проекты программирования (оценка относительно запроса ментора). От -20 до 10 баллов.
@@ -117,9 +117,9 @@ class VectorGPTService {
             const jsonMessage = JSON.parse(messageContent.replace(/```json|```/g, '').trim());
             console.log('GPT response:', jsonMessage);
 
-            const totalScore = Number(jsonMessage[0]?.totalScore); // Accessing totalScore from the first object in the array
+            const totalScore = Number(jsonMessage?.totalScore); 
             if (isNaN(totalScore)) {
-                throw new Error(`Invalid totalScore received from OpenAI: ${jsonMessage[0]?.totalScore}`);
+                throw new Error(`Invalid totalScore received from OpenAI: ${jsonMessage?.totalScore}`);
             }
 
             // Adjusting points based on OpenAI evaluation
