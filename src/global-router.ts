@@ -1,13 +1,13 @@
 import { Router } from 'express';
 // import apartmentRouter from './apartment/apartment.router';
 import authRouter from './auth/auth-router';
+import vectorGPTRouter from './vector-gpt/vector-gpt.router';
 
-// other routers can be imported here
 
 const globalRouter = Router();
 
-// Use the userRouter for user-related routes
-globalRouter.use(authRouter);
+// globalRouter.use(authRouter);
+globalRouter.use('/gpt', vectorGPTRouter);
 
 
 // other routers can be added here

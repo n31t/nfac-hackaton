@@ -17,18 +17,18 @@ export interface userData{
   phoneNumber: string;
     programmingSkillLevel: ProgrammingSkillLevel;
     cv?: string; // Optional: URL or base64 encoded string
-    willingToParticipateOnPaidBasis: boolean;
+    willingToParticipateOnPaidBasis: boolean; //WE DON'T CARE
     telegramHandle: string;
     linkedInLink: string;
     socialMediaLinks: string[]; // Array of URLs
     gitHubHandle: string;
     educationalPlacement: string; // University/College/High school
-    specialtyAtUniversity: string;
+    specialtyAtUniversity: string; 
     jobPlacement?: string; // Optional
     programmingExperienceDescription: string;
     pastProgrammingProjects: string;
     bestAchievements: string;
     availabilityInAlmaty: boolean;
-    needAccommodationInAlmaty: boolean;
+    needAccommodationInAlmaty: boolean; //WE DON'T CARE
     // representativeGroups: string[];
   }
