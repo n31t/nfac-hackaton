@@ -10,7 +10,7 @@ enum ProgrammingSkillLevel {
   /**
    * Interface representing the form questions.
    */
-export interface userData{
+export interface UserData{
     fullName: string;
     email: string;
     birthDate: string; // Format: DD-MM-YYYY
@@ -32,3 +32,14 @@ export interface userData{
     needAccommodationInAlmaty: boolean; //WE DON'T CARE
     // representativeGroups: string[];
   }
+
+  export interface CandidateData {
+    programmingSkillLevel: string;
+    cv: string;
+    educationalPlacement: string;
+    specialtyAtUniversity: string;
+    jobPlacement: string;
+    programmingExperienceDescription: string;
+    pastProgrammingProjects: string;
+    bestAchievements: string;
+}

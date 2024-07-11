@@ -1,6 +1,6 @@
 import openai from "../openai";
 import pinecone from "../pinecone";
-import { userData } from "./types/userData";
+import { CandidateData, UserData } from "./types/userData";
 
 let { GoogleGenerativeAIEmbeddings } = require("@langchain/google-genai");
 const LangchainOpenAI = require("@langchain/openai").OpenAI;
@@ -30,7 +30,7 @@ class VectorGPTService {
         }
     }
 
-    async createTotalMarks(userJSONdata: userData, neededSkills : string) : Promise<any> { 
+    async createTotalMarks(userJSONdata: UserData, neededSkills : string) : Promise<any> { 
         let points = 50;
         if(userJSONdata.availabilityInAlmaty === false || 
             userJSONdata.gitHubHandle === '' || 
@@ -138,7 +138,7 @@ class VectorGPTService {
             
     }
 
-    async saveToVectorDB(userJSONdata: userData, mentorsComment: string) {
+    async saveToVectorDB(userJSONdata: CandidateData, mentorsComment: string) {
         
     }
 
