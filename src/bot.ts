@@ -2,13 +2,13 @@ import { Telegraf } from "telegraf";
 import axios from "axios";
 import * as XLSX from "xlsx";
 import VectorGPTService from "./vector-gpt/vector-gpt.service";
-import { userData } from "./vector-gpt/types/userData";
+import { UserData } from "./vector-gpt/types/userData";
 
 const botToken = process.env.TELEGRAM_BOT_TOKEN || "";
 const bot = new Telegraf(botToken);
 
 let neededSkills: string = "";
-let arrayUsers: userData[] = [];
+let arrayUsers: UserData[] = [];
 
 const fetchExcelFile = async (url: string) => {
   try {
@@ -47,7 +47,7 @@ bot.on("text", async (ctx) => {
       const headers: any = data[1];
       const rows = data.slice(2);
 
-      arrayUsers = rows.map((row: any): userData => {
+      arrayUsers = rows.map((row: any): UserData => {
         return {
           fullName: row[1] || "",
           email: row[2] || "",

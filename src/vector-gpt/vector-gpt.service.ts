@@ -30,7 +30,7 @@ class VectorGPTService {
         }
     }
 
-    async createTotalMarks(userJSONdata: userData, neededSkills : string) : Promise<any> { 
+    async createTotalMarks(userJSONdata: UserData, neededSkills : string) : Promise<any> { 
         let points = 50;
         if(userJSONdata.availabilityInAlmaty === false || 
             userJSONdata.gitHubHandle === '' || 
@@ -141,16 +141,7 @@ class VectorGPTService {
         `Error processing with OpenAI: ${(error as Error).message}`
       );
     }
-<<<<<<< HEAD
   }
-=======
-
-    async saveToVectorDB(userJSONdata: CandidateData, mentorsComment: string) {
-        
-    }
-
-
->>>>>>> c376daf1d8c674e1d17c3ed5ea7f56c7e8bab320
 }
 
 export default VectorGPTService;
