@@ -12,19 +12,3 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
-model Apartment {
-  id Int @id @default(autoincrement())
-  link String @unique
-  price Int
-  location String
-  floor String
-  number String
-  photos          String[]
-  characteristics Json
-  description String @default("")
-  site String
-  type String
-  updatedAt       DateTime  @updatedAt
-  lastChecked     DateTime  @default(now())
-}

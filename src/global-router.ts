@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import apartmentRouter from './apartment/apartment.router';
+// import apartmentRouter from './apartment/apartment.router';
 import authRouter from './auth/auth-router';
 
 // other routers can be imported here
