@@ -1,5 +1,5 @@
 # Bot Interaction Details
-
+@CheckerBotNfacbot on Telegram
 The bot will guide the user through a series of questions. Below are the details of each part:
 
 ## Part 1: Ask for the Stage
