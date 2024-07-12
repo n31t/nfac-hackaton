@@ -1,47 +1,23 @@
-# 🚀 Node.js TypeScript Boilerplate
+# Bot Interaction Details
 
-This is a boilerplate project for building Node.js applications using TypeScript. It includes a basic setup for Express.js, custom logging middleware, and route management.
+The bot will guide the user through a series of questions. Below are the details of each part:
 
-## 📦 How to Start
+## Part 1: Ask for the Stage
 
-1. **Install dependencies:**
+The bot will first ask the user whether they are at "1 этап" or "2 этап". This step determines the stage of the process the user is in.
 
-   ```bash
-   npm install
-   ```
+## Part 2: Ask for Needed Skills
 
-   or
+Next, the bot will ask the user to list the needed skills for an applicant. This helps in defining the criteria for evaluating applicants.
 
-   ```bash
-   yarn install
-   ```
+## Part 3: Ask for Google Spreadsheet ID
 
-2. **Start the development server:**
-   ```bash
-   npm run start:dev
-   ```
-   or
-   ```bash
-   yarn start:dev
-   ```
+Finally, the bot will ask for the Google Spreadsheet ID. This ID will be used to access a specific Google Sheet for further processing.
 
-### 📂 Explanation of Structure
+**Sheet1 for 1 этап:**
+[Link to Sheet1](https://docs.google.com/spreadsheets/d/1qHLLchglR8Q-kCBEDq-GloBXlRrMqkguEQicWPGtw3I/edit?gid=0#gid=0)
 
-- **`src/`**: Source code directory.
-  - **`user/`**: Directory for user-related modules and components.
-    - **`dtos/`**: Directory for Data Transfer Objects (DTOs).
-      - **`CreateUser.dto.ts`**: DTO for user creation.
-    - **`types/`**: Directory for TypeScript types.
-      - **`response.ts`**: Type definitions for API responses.
-      - **`user-controller.ts`**: Type definitions for user controller.
-      - **`user-router.ts`**: Type definitions for user router.
-      - **`user-service.ts`**: Type definitions for user service.
-  - **`global-router.ts`**: File for global route definitions.
-  - **`index.ts`**: Main entry point of the application.
-  - **`logger.ts`**: Custom logging middleware.
+OR file that have same attributes for each participant
 
-## 📝 Additional Information
-
-This setup provides a structured way to build a Node.js application using TypeScript, with clear separation of concerns and organized testing. It includes everything you need to get started quickly and scale your application efficiently.
-
-Feel free to customize the structure and add more features as per your requirements. Happy coding! 💻
+**Sheet2 for 2 этап:**
+[Link to Sheet2](https://docs.google.com/spreadsheets/d/1ryGf4uNvhsQZcdCKj3v22qTERmbEm_4Vf_Nlq3WOdJc/edit?gid=0#gid=0)
