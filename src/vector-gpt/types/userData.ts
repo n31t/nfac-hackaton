@@ -2,16 +2,16 @@
  * Enum representing the level of programming skills.
  */
 enum ProgrammingSkillLevel {
-    NoExperience = "No experience",
-    ITStudent = "IT student",
-    CompetitiveProgrammer = "Competitive programmer",
-    ProfessionalDeveloper = "Professional developer",
-  }
-  /**
-   * Interface representing the form questions.
-   */
+  NoExperience = "No experience",
+  ITStudent = "IT student",
+  CompetitiveProgrammer = "Competitive programmer",
+  ProfessionalDeveloper = "Professional developer",
+}
+/**
+ * Interface representing the form questions.
+ */
 
-  /**
+/**
  * Interface for user data.
  *
  * @property fullName - The full name of the user.
@@ -34,35 +34,41 @@ enum ProgrammingSkillLevel {
  * @property availabilityInAlmaty - Whether the user is available in Almaty.
  * @property needAccommodationInAlmaty - Whether the user needs accommodation in Almaty. This property is not important for some use cases.
  */
-export interface UserData{
-    fullName: string;
-    email: string;
-    birthDate: string; // Format: DD-MM-YYYY
+export interface UserData {
+  fullName: string;
+  email: string;
+  birthDate: string; // Format: DD-MM-YYYY
   phoneNumber: string;
-    programmingSkillLevel: ProgrammingSkillLevel;
-    cv?: string; // Optional: URL or base64 encoded string
-    willingToParticipateOnPaidBasis: boolean; //WE DON'T CARE
-    telegramHandle: string;
-    linkedInLink: string;
-    socialMediaLinks: string[]; // Array of URLs
-    gitHubHandle: string;
-    educationalPlacement: string; // University/College/High school
-    specialtyAtUniversity: string; 
-    jobPlacement?: string; // Optional
-    programmingExperienceDescription: string;
-    pastProgrammingProjects: string;
-    bestAchievements: string;
-    availabilityInAlmaty: boolean;
-    needAccommodationInAlmaty: boolean; //WE DON'T CARE
-  }
+  programmingSkillLevel: ProgrammingSkillLevel;
+  cv?: string; // Optional: URL or base64 encoded string
+  willingToParticipateOnPaidBasis: boolean; //WE DON'T CARE
+  telegramHandle: string;
+  linkedInLink: string;
+  socialMediaLinks: string[]; // Array of URLs
+  gitHubHandle: string;
+  educationalPlacement: string; // University/College/High school
+  specialtyAtUniversity: string;
+  jobPlacement?: string; // Optional
+  programmingExperienceDescription: string;
+  pastProgrammingProjects: string;
+  bestAchievements: string;
+  availabilityInAlmaty: boolean;
+  needAccommodationInAlmaty: boolean; //WE DON'T CARE
+}
 
-  export interface CandidateData {
-    programmingSkillLevel: string;
-    cv: string;
-    educationalPlacement: string;
-    specialtyAtUniversity: string;
-    jobPlacement: string;
-    programmingExperienceDescription: string;
-    pastProgrammingProjects: string;
-    bestAchievements: string;
+export interface CandidateData {
+  programmingSkillLevel: string;
+  cv: string;
+  educationalPlacement: string;
+  specialtyAtUniversity: string;
+  jobPlacement: string;
+  programmingExperienceDescription: string;
+  pastProgrammingProjects: string;
+  bestAchievements: string;
+}
+
+export interface SecondTask {
+  email: string;
+  github: string;
+  repo: string;
 }
