@@ -15,7 +15,6 @@ const bot = new Telegraf(botToken);
 
 let neededSkills: string = "";
 let spreadsheetId: string = "";
-let spreadsheetId_2: string = "";
 let currentUserIndex: number = 0;
 let processedUsers: any[] = [];
 let userDecision: string = "";
@@ -23,7 +22,6 @@ let userComment: string = "";
 let rows: any[] = []; // Move rows to a higher scope
 let headers: any[] = []; // Move headers to a higher scope
 let sheetTitle: string = ""; // Move sheetTitle to a higher scope
-let sheetTitle_2: string = ""; // Move sheetTitle to a higher scope
 let currentUser: UserData | null = null; // To store the current user being reviewed
 let roundType: string = ""; // To store the type of round selected
 
@@ -44,9 +42,9 @@ async function getSpreadsheetInfo(spreadsheetId: string) {
   const response = await sheets.spreadsheets.get({ spreadsheetId });
   const sheet = response.data.sheets?.[0];
   sheetTitle = sheet?.properties?.title || "Sheet1"; // Assign to higher scope variable
-  const rowCount = sheet?.properties?.gridProperties?.rowCount || 1000;
-  const columnCount = sheet?.properties?.gridProperties?.columnCount || 26;
-  return { sheetTitle, rowCount, columnCount };
+  return (
+    sheet?.properties?.gridProperties || { rowCount: 1000, columnCount: 26 }
+  );
 }
 
 async function fetchSpreadsheetData(spreadsheetId: string, range: string) {
@@ -60,20 +58,16 @@ async function fetchSpreadsheetData(spreadsheetId: string, range: string) {
 }
 
 async function sendUserForReview(ctx: any, user: UserData, result: any) {
-  if (["yes", "no", "idk"].includes(result.yesOrNo.toLowerCase())) {
-    currentUser = user;
-    const userJson = JSON.stringify(user, null, 2);
-    await ctx.reply(`User to review:\n${userJson}`);
+  currentUser = user;
+  const userJson = JSON.stringify(user, null, 2);
+  await ctx.reply(`User to review:\n${userJson}`);
 
-    await ctx.reply(
-      "Please rate this user:",
-      Markup.keyboard([["Hell NO", "NO", "IDK", "YES", "Hell YES"]])
-        .oneTime()
-        .resize()
-    );
-  } else {
-    await proceedToNextUser(ctx);
-  }
+  await ctx.reply(
+    "Please rate this user:",
+    Markup.keyboard([["Hell NO", "NO", "IDK", "YES", "Hell YES"]])
+      .oneTime()
+      .resize()
+  );
 }
 
 async function proceedToNextUser(ctx: any) {
@@ -144,231 +138,77 @@ bot.on("text", async (ctx) => {
       ctx.reply("Please send me the URL of the Excel file.");
     }
   } else if (roundType === "Select for 1 round") {
-    if (neededSkills === "") {
-      neededSkills = messageText;
-      ctx.reply(
-        `Got it! The needed skills are: ${neededSkills}. Now send me the ID of the Google Spreadsheet.`
-      );
-    } else if (
-      spreadsheetId === "" &&
-      messageText.startsWith("https://docs.google.com/spreadsheets/")
-    ) {
-      const urlParts = messageText.split("/");
-      spreadsheetId = urlParts[5];
-      ctx.reply(
-        `Got the spreadsheet ID: ${spreadsheetId}. Processing the data...`
-      );
+    neededSkills = messageText;
+    ctx.reply(
+      `Got it! The needed skills are: ${neededSkills}. Now send me the URL of your Google Spreadsheet.`
+    );
+  } else if (messageText.startsWith("https://docs.google.com/spreadsheets/")) {
+    const urlParts = messageText.split("/");
+    spreadsheetId = urlParts[5];
+    ctx.reply(
+      `Got the spreadsheet ID: ${spreadsheetId}. Processing the data...`
+    );
 
-      try {
-        const { sheetTitle, rowCount, columnCount } = await getSpreadsheetInfo(
-          spreadsheetId
-        );
-        const range = `${sheetTitle}!A1:S100`;
+    try {
+      const gridProperties = await getSpreadsheetInfo(spreadsheetId);
+      const range = `${sheetTitle}!A1:Z${gridProperties.rowCount}`;
 
-        console.log(`Fetching data from range: ${range}`);
-        const data: any = await fetchSpreadsheetData(spreadsheetId, range);
+      console.log(`Fetching data from range: ${range}`);
+      const data = await fetchSpreadsheetData(spreadsheetId, range);
 
-        if (!data || data.length < 2) {
-          ctx.reply("The provided spreadsheet does not contain enough data.");
-          return;
-        }
-
-        headers = data[0];
-        rows = data.slice(1);
-
-        const arrayUsers: UserData[] = rows.map((row, index): UserData => {
-          console.log(`Processing row ${index + 1}:`, row);
-          return {
-            fullName: row[0] || "",
-            email: row[1] || "",
-            birthDate: row[2] || "",
-            phoneNumber: row[3] || "",
-            programmingSkillLevel: row[4] || "",
-            cv: row[5] || "",
-            willingToParticipateOnPaidBasis: row[6]?.toLowerCase() === "да",
-            telegramHandle: row[7] || "",
-            linkedInLink: row[8] || "",
-            socialMediaLinks: row[9] ? row[9].split(",") : [],
-            gitHubHandle: row[10] || "",
-            educationalPlacement: row[11] || "",
-            specialtyAtUniversity: row[12] || "",
-            jobPlacement: row[13] || "",
-            programmingExperienceDescription: row[14] || "",
-            pastProgrammingProjects: row[15] || "",
-            bestAchievements: row[16] || "",
-            availabilityInAlmaty: row[17]?.toLowerCase() === "истина",
-            needAccommodationInAlmaty: row[18]?.toLowerCase() === "да",
-          };
-        });
-        console.log("Headers:", headers);
-        console.log("First row of data:", rows[0]);
-
-        const startIndex = 10;
-        const endIndex = 20;
-        const limitedUsers = arrayUsers.slice(startIndex, endIndex);
-        const vectorGPTService = new VectorGPTService();
-
-        for (let i = 0; i < limitedUsers.length; i++) {
-          const user = limitedUsers[i];
-          const result = await vectorGPTService.createTotalMarks(
-            user,
-            neededSkills
-          );
-
-          processedUsers.push({ user, result });
-          rows[startIndex + i][20] = result.points;
-          rows[startIndex + i][21] = result.yesOrNo;
-          rows[startIndex + i][22] = result.opinionAboutParticipant;
-        }
-
-        if (processedUsers.length > 0) {
-          const { user, result } = processedUsers[currentUserIndex];
-          await sendUserForReview(ctx, user, result);
-        } else {
-          ctx.reply("No users to review.");
-        }
-
-        headers[20] = "Review by AI";
-
-        const updateValues = [headers, ...rows];
-        console.log(
-          "Preparing to update spreadsheet with values:",
-          updateValues
-        );
-
-        await updateSpreadsheetData(
-          spreadsheetId,
-          `${sheetTitle}!A1:W${rows.length + 1}`,
-          updateValues
-        );
-
-        ctx.reply(
-          "The data of the first 10 users has been processed and evaluated. The spreadsheet has been updated."
-        );
-      } catch (error: any) {
-        console.error("Error processing the spreadsheet:", error);
-        ctx.reply(
-          `Failed to fetch, parse, or update the spreadsheet. Error: ${error.message}`
-        );
-      }
-    } else if (
-      ["Hell NO", "NO", "IDK", "YES", "Hell YES"].includes(messageText)
-    ) {
-      userDecision = messageText;
-      ctx.reply("Please add your comment to your decision.");
-    } else if (userDecision !== "") {
-      userComment = messageText;
-      const userIndex = currentUserIndex + 10;
-      const user = rows[userIndex];
-
-      console.log(`Processing user at index: ${userIndex}`);
-      console.log(`User data: ${JSON.stringify(user)}`);
-
-      if (!user) {
-        console.error(`User not found at index: ${userIndex}`);
-        ctx.reply("An error occurred. Please try again.");
+      if (!data || data.length < 2) {
+        ctx.reply("The provided spreadsheet does not contain enough data.");
         return;
       }
 
-      rows[userIndex][23] = userDecision;
-      rows[userIndex][24] = userComment;
+      headers = data[0];
+      rows = data.slice(1);
 
-      console.log(
-        `User decision: ${userDecision}, Comment: ${userComment}, User: ${JSON.stringify(
-          rows[userIndex]
-        )}`
-      );
+      const tasks: any = rows.map((row, index) => ({
+        email: row[0] || "",
+        github: row[1] || "",
+        repo: row[2] || "",
+        codeChunks: [],
+      }));
 
-      userDecision = "";
-      userComment = "";
+      for (let i = 0; i < tasks.length; i++) {
+        const task: any = tasks[i];
+        task.codeChunks = await getAllCode(task.github, task.repo);
 
-      if (currentUser) {
-        const vectorGPTService = new VectorGPTService();
-        await vectorGPTService.saveToVectorDB(currentUser, userComment);
-      }
-
-      await proceedToNextUser(ctx);
-
-      headers[23] = "User Decision";
-      headers[24] = "User Comment";
-
-      const updateValues = [headers, ...rows];
-      await updateSpreadsheetData(
-        spreadsheetId,
-        `${sheetTitle}!A1:Y${rows.length + 1}`,
-        updateValues
-      );
-    } else {
-      ctx.reply(
-        "Please provide the Google Spreadsheet URL or respond to the current user review."
-      );
-    }
-  } else if (messageText === "Select for 2 round") {
-    roundType = messageText;
-    ctx.reply("Please send me the URL of the Google Spreadsheet.");
-  } else if (roundType === "Select for 2 round") {
-    if (
-      spreadsheetId === "" &&
-      messageText.startsWith("https://docs.google.com/spreadsheets/")
-    ) {
-      const urlParts = messageText.split("/");
-      spreadsheetId = urlParts[5];
-      ctx.reply(
-        `Got the spreadsheet ID: ${spreadsheetId}. Processing the data...`
-      );
-
-      try {
-        const { sheetTitle, rowCount, columnCount } = await getSpreadsheetInfo(
-          spreadsheetId
-        );
-        const range = `${sheetTitle}!A1:C${rowCount}`;
-
-        console.log(`Fetching data from range: ${range}`);
-        const data = await fetchSpreadsheetData(spreadsheetId, range);
-
-        if (!data || data.length < 2) {
-          ctx.reply("The provided spreadsheet does not contain enough data.");
-          return;
-        }
-
-        headers = data[0];
-        rows = data.slice(1);
-
-        const tasks: SecondTask[] = rows.map(
-          (row): SecondTask => ({
-            email: row[0],
-            github: row[1],
-            repo: row[2],
-          })
-        );
-
-        for (const task of tasks) {
-          const { email, github, repo } = task;
-          const allCodeChunks = await getAllCode(github, repo);
-
-          console.log(
-            `Processed code for repository ${repo}, ${github}, ${email}:`,
-            allCodeChunks.length,
-            "chunks retrieved."
+        if (i > 0) {
+          const commonLines = await findCommonLinesBetweenChunks(
+            tasks[i - 1].codeChunks,
+            task.codeChunks
           );
 
-          const chunkRange = ` ${sheetTitle}!E2:K${rows.length + 1}`;
-          const chunkValues = allCodeChunks.map((chunk, index) => [chunk]);
-          await updateSpreadsheetData(spreadsheetId, chunkRange, chunkValues);
+          const commonLinesRange = `${sheetTitle}!F${i + 2}:F${i + 2}`;
+          await updateSpreadsheetData(spreadsheetId, commonLinesRange, [
+            [commonLines.join("\n")],
+          ]);
+
+          console.log(
+            `Common lines between tasks ${i} and ${i + 1}:`,
+            commonLines
+          );
         }
 
-        ctx.reply(
-          "Repositories have been processed and the code has been stored in the spreadsheet."
-        );
-      } catch (error: any) {
-        console.error("Error processing the spreadsheet:", error);
-        ctx.reply(
-          `Failed to fetch, parse, or update the spreadsheet. Error: ${error.message}`
-        );
+        const chunkRange = `${sheetTitle}!E${i + 2}:E${i + 2}`;
+        await updateSpreadsheetData(spreadsheetId, chunkRange, [
+          [task.codeChunks.join("\n")],
+        ]);
       }
-    } else {
-      ctx.reply("Please send a valid URL for the Google Spreadsheet.");
+
+      ctx.reply(
+        "The data has been processed and the spreadsheet has been updated."
+      );
+    } catch (error: any) {
+      console.error("Error processing the spreadsheet:", error);
+      ctx.reply(`Failed to process the spreadsheet. Error: ${error.message}`);
     }
+  } else {
+    ctx.reply(
+      "Please provide a valid URL for the Google Spreadsheet or select a round type."
+    );
   }
 });
 
